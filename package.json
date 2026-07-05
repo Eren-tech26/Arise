@@ -1,0 +1,9 @@
+{
+  "name": "arise-solo-leveling-system",
+  "version": "1.0.0",
+  "description": "Arise - a Solo Leveling styled habit tracker",
+  "main": "index.js",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  }
+}
