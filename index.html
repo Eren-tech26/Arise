@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arise</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000000;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    color: #e6f7ff;
+    overflow-x: hidden;
+  }
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ===== GATE WARNING ===== */
+  .gate-box {
+    position: relative;
+    border: 1px solid rgba(0, 200, 255, 0.5);
+    background: rgba(0, 15, 25, 0.4);
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.25), inset 0 0 30px rgba(0, 200, 255, 0.05);
+    padding: 3rem 3.5rem;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 1s ease-out 0.2s forwards;
+  }
+
+  .gate-box::before, .gate-box::after {
+    content: "";
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 1px solid #00c8ff;
+  }
+  .gate-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .gate-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .label {
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    margin-bottom: 1.2rem;
+    text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
+  }
+
+  .gate-message {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.8;
+    margin-bottom: 2.2rem;
+  }
+
+  .highlight { color: #00c8ff; text-shadow: 0 0 10px rgba(0, 200, 255, 0.7); }
+
+  .system-btn {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    background: transparent;
+    border: 1px solid #00c8ff;
+    padding: 0.85rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(0, 200, 255, 0.6);
+    box-shadow: 0 0 12px rgba(0, 200, 255, 0.2);
+  }
+
+  .system-btn:hover { background: rgba(0, 200, 255, 0.1); box-shadow: 0 0 24px rgba(0, 200, 255, 0.5); }
+  .system-btn:active { transform: scale(0.96); }
+  .system-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .screen-exit { animation: screenExit 0.6s ease-in forwards; }
+  @keyframes screenExit { to { opacity: 0; visibility: hidden; } }
+
+  /* ===== ARISE INTRO ===== */
+  #ariseScreen { text-align: center; }
+  .intro-inner { position: relative; display: none; }
+  .intro-inner.active { display: block; }
+
+  .pulse-ring {
+    position: absolute; top: 50%; left: 50%;
+    width: 10px; height: 10px;
+    border: 1px solid rgba(0, 200, 255, 0.7);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0; z-index: 1;
+  }
+  .intro-inner.active .pulse-ring { animation: ringExpand 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes ringExpand {
+    0% { width: 10px; height: 10px; opacity: 0; }
+    15% { opacity: 1; }
+    100% { width: 900px; height: 900px; opacity: 0; }
+  }
+
+  .aura { position: absolute; top: 50%; left: 50%; width: 700px; height: 400px; transform: translate(-50%, -50%); z-index: 1; opacity: 0; }
+  .intro-inner.active .aura { animation: auraFadeIn 2s ease-out 0.6s forwards; }
+  @keyframes auraFadeIn { to { opacity: 1; } }
+
+  .aura-blob { position: absolute; border-radius: 50%; filter: blur(45px); mix-blend-mode: screen; }
+  .aura-blob.b1 { width: 260px; height: 260px; background: radial-gradient(circle, rgba(0,200,255,0.55), transparent 70%); top: 10%; left: 15%; animation: drift1 7s ease-in-out infinite; }
+  .aura-blob.b2 { width: 220px; height: 220px; background: radial-gradient(circle, rgba(124,92,255,0.5), transparent 70%); top: 40%; right: 12%; animation: drift2 8.5s ease-in-out infinite; }
+  .aura-blob.b3 { width: 300px; height: 180px; background: radial-gradient(circle, rgba(0,230,255,0.4), transparent 70%); bottom: 5%; left: 30%; animation: drift3 6.5s ease-in-out infinite; }
+  .aura-blob.b4 { width: 180px; height: 180px; background: radial-gradient(circle, rgba(80,120,255,0.45), transparent 70%); top: 0%; right: 30%; animation: drift1 9s ease-in-out infinite reverse; }
+
+  @keyframes drift1 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.15); } 66% { transform: translate(-20px,15px) scale(0.9); } }
+  @keyframes drift2 { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(-25px,20px) scale(1.1); } 66% { transform: translate(15px,-25px) scale(0.95); } }
+  @keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px,-10px) scale(1.2); } }
+
+  .wisp { position: absolute; top: 50%; left: 50%; width: 500px; height: 500px; transform: translate(-50%, -50%); border-radius: 50%; opacity: 0; }
+  .intro-inner.active .wisp { animation: wispFade 2s ease-out 1s forwards; }
+  .wisp::before {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    border-top: 1px solid rgba(0, 220, 255, 0.5); border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent; border-left: 1px solid rgba(124, 92, 255, 0.3);
+    filter: blur(2px); animation: spin 6s linear infinite;
+  }
+  .wisp.w2 { width: 620px; height: 620px; animation-delay: 1.3s; }
+  .wisp.w2::before {
+    border-top: 1px solid transparent; border-right: 1px solid rgba(0, 200, 255, 0.35);
+    border-bottom: 1px solid rgba(124, 92, 255, 0.25); border-left: 1px solid transparent;
+    animation: spin 9s linear infinite reverse;
+  }
+  @keyframes wispFade { to { opacity: 1; } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .arise-text {
+    position: relative; z-index: 2;
+    font-family: 'Cinzel', serif; font-weight: 600;
+    font-size: clamp(3.5rem, 12vw, 8rem);
+    color: #00c8ff; letter-spacing: 0.25em; text-transform: uppercase;
+    opacity: 0; filter: blur(8px);
+    text-shadow: 0 0 5px #00eaff, 0 0 15px #00c8ff, 0 0 35px #0088ff, 0 0 70px rgba(0, 150, 255, 0.6);
+  }
+  .intro-inner.active .arise-text { animation: ariseIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards, flicker 3s linear 2s infinite; }
+  @keyframes ariseIn {
+    0% { opacity: 0; filter: blur(12px); transform: scale(0.85); letter-spacing: 0.5em; }
+    60% { opacity: 1; filter: blur(0px); }
+    100% { opacity: 1; filter: blur(0px); transform: scale(1); letter-spacing: 0.25em; }
+  }
+  @keyframes flicker { 0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.7; } 94% { opacity: 1; } 96% { opacity: 0.85; } 97% { opacity: 1; } }
+
+  .powered-by {
+    position: relative; z-index: 2; margin-top: 1.4rem;
+    font-weight: 300; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: #4a5568; opacity: 0;
+  }
+  .intro-inner.active .powered-by { animation: fadeUp 1s ease-out 1.8s forwards; }
+  .powered-by span { color: #00c8ff; font-weight: 600; text-shadow: 0 0 8px rgba(0, 200, 255, 0.6); }
+  @keyframes fadeUp { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+
+  .divider {
+    position: relative; z-index: 2; width: 0%; height: 1px;
+    background: linear-gradient(90deg, transparent, #00c8ff, transparent);
+    margin: 0.9rem auto; box-shadow: 0 0 8px rgba(0, 200, 255, 0.8);
+  }
+  .intro-inner.active .divider { animation: growLine 1s ease-out 1.4s forwards; }
+  @keyframes growLine { to { width: 220px; } }
+
+  .intro-inner.exit { animation: introExit 0.8s ease-in forwards; }
+  @keyframes introExit { to { opacity: 0; transform: scale(1.05); } }
+
+  /* ===== NAME ENTRY ===== */
+  .name-box {
+    position: relative;
+    border: 1px solid rgba(0, 200, 255, 0.5);
+    background: rgba(0, 15, 25, 0.4);
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.25), inset 0 0 30px rgba(0, 200, 255, 0.05);
+    padding: 3rem 3rem;
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 0.8s ease-out 0.2s forwards;
+  }
+  .name-box::before, .name-box::after {
+    content: ""; position: absolute; width: 14px; height: 14px; border: 1px solid #00c8ff;
+  }
+  .name-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .name-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .name-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #e6f7ff;
+    margin-bottom: 0.4rem;
+  }
+
+  .name-sub {
+    font-size: 0.75rem;
+    color: #5b6478;
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  .name-input {
+    width: 100%;
+    background: rgba(0, 200, 255, 0.05);
+    border: 1px solid rgba(0, 200, 255, 0.4);
+    color: #00eaff;
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.6rem;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  .name-input:focus { box-shadow: 0 0 16px rgba(0, 200, 255, 0.4); border-color: #00c8ff; }
+  .name-input::placeholder { color: #3a4658; letter-spacing: 0.1em; }
+
+  .error-text {
+    color: #ff4757;
+    font-size: 0.8rem;
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+    min-height: 1em;
+  }
+
+  /* ===== RANK REVEAL ===== */
+  #rankScreen { text-align: center; }
+  .rank-inner { display: none; }
+  .rank-inner.active { display: block; }
+
+  .rank-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: #5b6478;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease-out 0.3s forwards;
+  }
+
+  .rank-hunter-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: #e6f7ff;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease-out 0.6s forwards;
+  }
+
+  .rank-circle {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 200, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    position: relative;
+    opacity: 0;
+    transform: scale(0.7);
+    animation: rankPop 1s cubic-bezier(0.34, 1.56, 0.64, 1) 1.2s forwards;
+  }
+
+  .rank-circle::before {
+    content: "";
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 200, 255, 0.25);
+    animation: spin 12s linear infinite;
+  }
+
+  @keyframes rankPop {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .rank-letter {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 5rem;
+    color: #00eaff;
+    text-shadow: 0 0 15px #00c8ff, 0 0 40px rgba(0, 150, 255, 0.6);
+  }
+
+  .rank-tagline {
+    font-size: 0.85rem;
+    color: #7c8698;
+    letter-spacing: 0.05em;
+    max-width: 320px;
+    margin: 0 auto 2.2rem;
+    line-height: 1.6;
+    opacity: 0;
+    animation: fadeUp 0.8s ease-out 2s forwards;
+  }
+
+  .rank-inner .system-btn {
+    opacity: 0;
+    animation: fadeUp 0.8s ease-out 2.4s forwards;
+  }
+
+  /* ===== DASHBOARD ===== */
+  #dashboard { display: none; min-height: 100vh; padding: 2rem 1.2rem 4rem; max-width: 640px; margin: 0 auto; }
+  #dashboard.active { display: block; }
+
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+    padding-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .dash-name-block .dash-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: #e6f7ff;
+  }
+  .dash-name-block .dash-rank {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: #00c8ff;
+    text-transform: uppercase;
+  }
+
+  .dash-level-badge {
+    text-align: right;
+  }
+  .dash-level-num {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    color: #00eaff;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+  }
+  .dash-level-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #5b6478;
+    text-transform: uppercase;
+  }
+
+  .xp-bar-wrap {
+    margin-bottom: 2rem;
+  }
+  .xp-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #5b6478;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.1em;
+  }
+  .xp-bar-track {
+    height: 8px;
+    background: rgba(0, 200, 255, 0.08);
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    overflow: hidden;
+  }
+  .xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0088ff, #00eaff);
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+    transition: width 0.6s ease-out;
+  }
+
+  .panel {
+    border: 1px solid rgba(0, 200, 255, 0.2);
+    background: rgba(0, 15, 25, 0.3);
+    padding: 1.4rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .panel::before, .panel::after { content: ""; position: absolute; width: 10px; height: 10px; border: 1px solid rgba(0, 200, 255, 0.5); }
+  .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #00c8ff;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 6px rgba(0, 200, 255, 0.4);
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(0, 200, 255, 0.08);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-name { font-size: 0.85rem; color: #b8c4d9; letter-spacing: 0.08em; }
+  .stat-value { font-family: 'Cinzel', serif; color: #00eaff; font-weight: 600; }
+
+  .stat-plus {
+    background: rgba(0, 200, 255, 0.1);
+    border: 1px solid rgba(0, 200, 255, 0.4);
+    color: #00c8ff;
+    width: 24px; height: 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1;
+    transition: all 0.2s;
+  }
+  .stat-plus:hover { background: rgba(0, 200, 255, 0.25); }
+  .stat-plus:disabled { opacity: 0.2; cursor: not-allowed; }
+
+  .stat-points-banner {
+    font-size: 0.75rem;
+    color: #7c5cff;
+    text-align: center;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.05em;
+  }
+
+  .quest-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(0, 200, 255, 0.08);
+  }
+  .quest-item:last-child { border-bottom: none; }
+
+  .quest-check {
+    width: 22px; height: 22px;
+    border: 1px solid rgba(0, 200, 255, 0.5);
+    border-radius: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .quest-check.checked {
+    background: #00c8ff;
+    box-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+  }
+  .quest-check.checked::after {
+    content: "✓";
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .quest-text { flex: 1; font-size: 0.85rem; color: #d0dae8; }
+  .quest-text.done { text-decoration: line-through; color: #4a5568; }
+  .quest-xp { font-size: 0.7rem; color: #7c5cff; white-space: nowrap; }
+
+  .empty-state {
+    text-align: center;
+    color: #4a5568;
+    font-size: 0.8rem;
+    padding: 1.5rem 0;
+  }
+
+  .add-quest-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+  .add-quest-input {
+    flex: 1;
+    background: rgba(0, 200, 255, 0.05);
+    border: 1px solid rgba(0, 200, 255, 0.3);
+    color: #e6f7ff;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+  }
+  .add-quest-input:focus { border-color: #00c8ff; }
+  .add-quest-input::placeholder { color: #3a4658; }
+
+  .add-quest-btn {
+    background: rgba(0, 200, 255, 0.1);
+    border: 1px solid #00c8ff;
+    color: #00c8ff;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .add-quest-btn:hover { background: rgba(0, 200, 255, 0.2); }
+
+  /* Level up toast */
+  .levelup-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: rgba(0, 10, 20, 0.95);
+    border: 1px solid #00c8ff;
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+    padding: 1rem 2rem;
+    text-align: center;
+    z-index: 100;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .levelup-toast.show { transform: translateX(-50%) translateY(0); }
+  .levelup-toast .lt-title {
+    font-family: 'Cinzel', serif;
+    color: #00eaff;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+  }
+  .levelup-toast .lt-sub {
+    font-size: 0.75rem;
+    color: #7c5cff;
+    margin-top: 0.3rem;
+  }
+
+  @media (max-width: 480px) {
+    .gate-box, .name-box { padding: 2.2rem 1.6rem; }
+    .rank-circle { width: 140px; height: 140px; }
+    .rank-letter { font-size: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- GATE WARNING -->
+  <div class="screen" id="gateScreen">
+    <div class="gate-box">
+      <div class="label">⚠ System Notice</div>
+      <div class="gate-message">
+        Be aware.<br>
+        You are about to enter the <span class="highlight">System</span>.<br>
+        There is no turning back.
+      </div>
+      <button class="system-btn" id="enterBtn">Enter</button>
+    </div>
+  </div>
+
+  <!-- ARISE INTRO -->
+  <div class="screen hidden" id="ariseScreen">
+    <div class="intro-inner" id="introInner">
+      <div class="pulse-ring"></div>
+      <div class="aura">
+        <div class="aura-blob b1"></div>
+        <div class="aura-blob b2"></div>
+        <div class="aura-blob b3"></div>
+        <div class="aura-blob b4"></div>
+      </div>
+      <div class="wisp"></div>
+      <div class="wisp w2"></div>
+      <div class="arise-text">Arise</div>
+      <div class="divider"></div>
+      <div class="powered-by">Powered by <span>Aethonix Network</span></div>
+    </div>
+  </div>
+
+  <!-- NAME ENTRY -->
+  <div class="screen hidden" id="nameScreen">
+    <div class="name-box">
+      <div class="name-title">Hunter Registration</div>
+      <div class="name-sub">Enter your name, Hunter</div>
+      <input type="text" class="name-input" id="nameInput" placeholder="e.g. Sung Jin-Woo" maxlength="24" />
+      <div class="error-text" id="nameError"></div>
+      <button class="system-btn" id="registerBtn">Confirm</button>
+    </div>
+  </div>
+
+  <!-- RANK REVEAL -->
+  <div class="screen hidden" id="rankScreen">
+    <div class="rank-inner" id="rankInner">
+      <div class="rank-label">Evaluation Complete</div>
+      <div class="rank-hunter-name" id="rankHunterName">Hunter</div>
+      <div class="rank-circle">
+        <div class="rank-letter" id="rankLetter">E</div>
+      </div>
+      <div class="rank-tagline" id="rankTagline">Your journey as a Hunter begins now.</div>
+      <button class="system-btn" id="proceedBtn">Enter the System</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="dash-header">
+      <div class="dash-name-block">
+        <div class="dash-name" id="dashName">Hunter</div>
+        <div class="dash-rank" id="dashRank">RANK E</div>
+      </div>
+      <div class="dash-level-badge">
+        <div class="dash-level-num" id="dashLevel">1</div>
+        <div class="dash-level-label">Level</div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-label">
+        <span>XP</span>
+        <span id="xpText">0 / 100</span>
+      </div>
+      <div class="xp-bar-track">
+        <div class="xp-bar-fill" id="xpFill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Stats</div>
+      <div class="stat-points-banner hidden" id="statPointsBanner">You have <span id="statPointsCount">0</span> stat points to allocate</div>
+      <div id="statsList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Daily Quests</div>
+      <div id="questsList"></div>
+      <div class="add-quest-row">
+        <input type="text" class="add-quest-input" id="questInput" placeholder="Add a new quest..." maxlength="80" />
+        <button class="add-quest-btn" id="addQuestBtn">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="levelup-toast" id="levelUpToast">
+    <div class="lt-title">LEVEL UP</div>
+    <div class="lt-sub" id="levelUpSub">Level 2 • +3 Stat Points</div>
+  </div>
+
+  <script>
+    // ===== STATE =====
+    let currentHunter = null;
+
+    // ===== SOUND =====
+    function playAriseSound() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      const master = ctx.createGain();
+      master.gain.value = 1;
+      master.connect(ctx.destination);
+
+      const bufferSize = ctx.sampleRate * 2;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.Q.value = 0.7;
+      noiseFilter.frequency.setValueAtTime(200, now);
+      noiseFilter.frequency.exponentialRampToValueAtTime(3500, now + 1.3);
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0, now);
+      noiseGain.gain.linearRampToValueAtTime(0.35, now + 0.5);
+      noiseGain.gain.linearRampToValueAtTime(0.15, now + 1.0);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(master);
+      noise.start(now);
+      noise.stop(now + 2);
+
+      [0, 4].forEach((detune, idx) => {
+        const hum = ctx.createOscillator();
+        const humGain = ctx.createGain();
+        hum.type = 'sine';
+        hum.detune.value = detune;
+        hum.frequency.setValueAtTime(70, now);
+        hum.frequency.exponentialRampToValueAtTime(180 + idx * 20, now + 1.2);
+        humGain.gain.setValueAtTime(0, now);
+        humGain.gain.linearRampToValueAtTime(0.2, now + 0.35);
+        humGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
+        hum.connect(humGain);
+        humGain.connect(master);
+        hum.start(now);
+        hum.stop(now + 1.8);
+      });
+
+      const zap = ctx.createOscillator();
+      const zapGain = ctx.createGain();
+      zap.type = 'sawtooth';
+      zap.frequency.setValueAtTime(500, now + 0.85);
+      zap.frequency.exponentialRampToValueAtTime(2200, now + 1.05);
+      const zapFilter = ctx.createBiquadFilter();
+      zapFilter.type = 'highpass';
+      zapFilter.frequency.value = 400;
+      zapGain.gain.setValueAtTime(0, now + 0.85);
+      zapGain.gain.linearRampToValueAtTime(0.12, now + 0.95);
+      zapGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+      zap.connect(zapFilter);
+      zapFilter.connect(zapGain);
+      zapGain.connect(master);
+      zap.start(now + 0.85);
+      zap.stop(now + 1.5);
+
+      const thump = ctx.createOscillator();
+      const thumpGain = ctx.createGain();
+      thump.type = 'sine';
+      thump.frequency.setValueAtTime(90, now + 0.9);
+      thump.frequency.exponentialRampToValueAtTime(28, now + 1.4);
+      thumpGain.gain.setValueAtTime(0.5, now + 0.9);
+      thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+      thump.connect(thumpGain);
+      thumpGain.connect(master);
+      thump.start(now + 0.9);
+      thump.stop(now + 1.5);
+
+      [1800, 2700, 3600].forEach((freq, i) => {
+        const bell = ctx.createOscillator();
+        const bellGain = ctx.createGain();
+        bell.type = 'sine';
+        bell.frequency.value = freq;
+        bellGain.gain.setValueAtTime(0, now + 0.95);
+        bellGain.gain.linearRampToValueAtTime(0.05 / (i + 1), now + 1.05);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5 + i * 0.3);
+        bell.connect(bellGain);
+        bellGain.connect(master);
+        bell.start(now + 0.95);
+        bell.stop(now + 3);
+      });
+    }
+
+    // ===== SCREEN FLOW =====
+    const gateScreen = document.getElementById('gateScreen');
+    const ariseScreen = document.getElementById('ariseScreen');
+    const introInner = document.getElementById('introInner');
+    const nameScreen = document.getElementById('nameScreen');
+    const rankScreen = document.getElementById('rankScreen');
+    const rankInner = document.getElementById('rankInner');
+    const dashboard = document.getElementById('dashboard');
+
+    document.getElementById('enterBtn').addEventListener('click', () => {
+      playAriseSound();
+      gateScreen.classList.add('screen-exit');
+
+      setTimeout(() => {
+        gateScreen.classList.add('hidden');
+        ariseScreen.classList.remove('hidden');
+        introInner.classList.add('active');
+      }, 500);
+
+      setTimeout(() => {
+        introInner.classList.add('exit');
+      }, 4500);
+
+      setTimeout(() => {
+        ariseScreen.classList.add('hidden');
+        nameScreen.classList.remove('hidden');
+      }, 5300);
+    });
+
+    // ===== NAME ENTRY =====
+    const nameInput = document.getElementById('nameInput');
+    const nameError = document.getElementById('nameError');
+    const registerBtn = document.getElementById('registerBtn');
+
+    async function registerHunter() {
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameError.textContent = 'A Hunter must have a name.';
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = 'Evaluating...';
+      nameError.textContent = '';
+
+      try {
+        const res = await fetch('/api/hunter/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Registration failed');
+        }
+
+        currentHunter = data.hunter;
+        localStorage.setItem('hunterName', currentHunter.name);
+
+        showRankReveal(currentHunter, data.isNew);
+      } catch (err) {
+        nameError.textContent = err.message || 'Something went wrong. Try again.';
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Confirm';
+      }
+    }
+
+    registerBtn.addEventListener('click', registerHunter);
+    nameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') registerHunter(); });
+
+    // ===== RANK REVEAL =====
+    const rankTaglines = {
+      E: "The weakest of the weak. But every Monarch started somewhere.",
+      D: "A modest beginning. Growth is the only way forward.",
+      C: "Above average. The System has noticed potential in you.",
+      B: "A strong Hunter. Few reach this rank without sacrifice.",
+      A: "Elite. The System expects great things from you."
+    };
+
+    function showRankReveal(hunter, isNew) {
+      nameScreen.classList.add('hidden');
+      rankScreen.classList.remove('hidden');
+
+      document.getElementById('rankHunterName').textContent = hunter.name;
+      document.getElementById('rankLetter').textContent = hunter.rank;
+      document.getElementById('rankTagline').textContent = isNew
+        ? (rankTaglines[hunter.rank] || "Your journey begins now.")
+        : `Welcome back, ${hunter.name}.`;
+
+      rankInner.classList.add('active');
+    }
+
+    document.getElementById('proceedBtn').addEventListener('click', () => {
+      rankScreen.classList.add('hidden');
+      loadDashboard(currentHunter);
+    });
+
+    // ===== DASHBOARD =====
+    function loadDashboard(hunter) {
+      dashboard.classList.add('active');
+      renderDashboard(hunter);
+    }
+
+    function renderDashboard(hunter) {
+      document.getElementById('dashName').textContent = hunter.name;
+      document.getElementById('dashRank').textContent = `RANK ${hunter.rank}`;
+      document.getElementById('dashLevel').textContent = hunter.level;
+      document.getElementById('xpText').textContent = `${hunter.xp} / ${hunter.xpToNextLevel}`;
+      document.getElementById('xpFill').style.width = `${Math.min(100, (hunter.xp / hunter.xpToNextLevel) * 100)}%`;
+
+      // Stats
+      const statsList = document.getElementById('statsList');
+      const statPointsBanner = document.getElementById('statPointsBanner');
+      const statPointsCount = document.getElementById('statPointsCount');
+
+      if (hunter.statPoints > 0) {
+        statPointsBanner.classList.remove('hidden');
+        statPointsCount.textContent = hunter.statPoints;
+      } else {
+        statPointsBanner.classList.add('hidden');
+      }
+
+      statsList.innerHTML = '';
+      Object.entries(hunter.stats).forEach(([stat, value]) => {
+        const row = document.createElement('div');
+        row.className = 'stat-row';
+        row.innerHTML = `
+          <span class="stat-name">${stat}</span>
+          <span style="display:flex; align-items:center;">
+            <span class="stat-value">${value}</span>
+            <button class="stat-plus" data-stat="${stat}" ${hunter.statPoints <= 0 ? 'disabled' : ''}>+</button>
+          </span>
+        `;
+        statsList.appendChild(row);
+      });
+
+      document.querySelectorAll('.stat-plus').forEach(btn => {
+        btn.addEventListener('click', () => allocateStat(btn.dataset.stat));
+      });
+
+      // Quests
+      const questsList = document.getElementById('questsList');
+      questsList.innerHTML = '';
+
+      if (!hunter.quests || hunter.quests.length === 0) {
+        questsList.innerHTML = '<div class="empty-state">No quests yet. The System awaits your first task.</div>';
+      } else {
+        hunter.quests.forEach(quest => {
+          const item = document.createElement('div');
+          item.className = 'quest-item';
+          item.innerHTML = `
+            <div class="quest-check ${quest.completed ? 'checked' : ''}" data-id="${quest.id}"></div>
+            <div class="quest-text ${quest.completed ? 'done' : ''}">${quest.text}</div>
+            <div class="quest-xp">+${quest.xpReward} XP</div>
+          `;
+          questsList.appendChild(item);
+        });
+
+        document.querySelectorAll('.quest-check:not(.checked)').forEach(check => {
+          check.addEventListener('click', () => completeQuest(check.dataset.id));
+        });
+      }
+    }
+
+    async function allocateStat(stat) {
+      try {
+        const res = await fetch('/api/stats/allocate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: currentHunter.name, stat, points: 1 })
+        });
+        if (!res.ok) return;
+
+        currentHunter.stats[stat] += 1;
+        currentHunter.statPoints -= 1;
+        renderDashboard(currentHunter);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function completeQuest(questId) {
+      try {
+        const res = await fetch('/api/quests/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: currentHunter.name, questId })
+        });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        const quest = currentHunter.quests.find(q => q.id === questId);
+        if (quest) quest.completed = true;
+
+        currentHunter.xp = data.hunter.xp;
+        currentHunter.level = data.hunter.level;
+        currentHunter.xpToNextLevel = data.hunter.xpToNextLevel;
+        currentHunter.statPoints = data.hunter.statPoints;
+
+        renderDashboard(currentHunter);
+
+        if (data.leveledUp) {
+          showLevelUp(data.newLevel, data.statPointsGained);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function showLevelUp(level, statPoints) {
+      const toast = document.getElementById('levelUpToast');
+      document.getElementById('levelUpSub').textContent = `Level ${level} • +${statPoints} Stat Points`;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    document.getElementById('addQuestBtn').addEventListener('click', addQuest);
+    document.getElementById('questInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addQuest(); });
+
+    async function addQuest() {
+      const input = document.getElementById('questInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      try {
+        const res = await fetch('/api/quests/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: currentHunter.name, questText: text, xpReward: 20, statType: 'STR' })
+        });
+        const data = await res.json();
+        if (!res.ok) return;
+
+        if (!currentHunter.quests) currentHunter.quests = [];
+        currentHunter.quests.push(data.quest);
+        input.value = '';
+        renderDashboard(currentHunter);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+
+</body>
+</html>
