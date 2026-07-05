@@ -8,7 +8,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { name, stat, points } = req.body;
+    const { username, stat, points } = req.body;
 
     if (!name || !VALID_STATS.includes(stat) || !points || points < 1) {
       return res.status(400).json({ error: 'Invalid request' });
