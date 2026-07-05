@@ -6,29 +6,33 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { name, questText, xpReward, statType } = req.body;
+    const { username, questText, xpReward, statType, frequency } = req.body;
 
-    if (!name || !questText) {
-      return res.status(400).json({ error: 'Hunter name and quest text are required' });
+    if (!username || !questText) {
+      return res.status(400).json({ error: 'Username and quest text are required' });
     }
+
+    const freq = frequency === 'weekly' ? 'weekly' : 'daily';
+    const field = freq === 'weekly' ? 'weeklyQuests' : 'dailyQuests';
 
     const client = await clientPromise;
     const db = client.db(process.env.DB_NAME || 'solo_leveling_system');
     const hunters = db.collection('hunters');
 
     const quest = {
-      id: new Date().getTime().toString(),
+      id: Date.now().toString() + Math.random().toString(36).slice(2, 7),
       text: questText.trim(),
-      xpReward: xpReward || 20,
+      xpReward: xpReward || (freq === 'weekly' ? 80 : 20),
       statType: statType || 'STR',
       completed: false,
+      frequency: freq,
       createdAt: new Date(),
-      dateKey: new Date().toISOString().split('T')[0]
+      periodKey: getPeriodKey(freq)
     };
 
     const result = await hunters.updateOne(
-      { name: name.trim() },
-      { $push: { quests: quest }, $set: { lastActive: new Date() } }
+      { username: username.trim().toLowerCase() },
+      { $push: { [field]: quest }, $set: { lastActive: new Date() } }
     );
 
     if (result.matchedCount === 0) {
@@ -41,3 +45,13 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to add quest' });
   }
 };
+
+function getPeriodKey(freq) {
+  const now = new Date();
+  if (freq === 'weekly') {
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil((((now - jan1) / 86400000) + jan1.getDay() + 1) / 7);
+    return `${now.getFullYear()}-W${week}`;
+  }
+  return now.toISOString().split('T')[0];
+}
