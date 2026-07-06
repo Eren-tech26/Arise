@@ -87,7 +87,6 @@
   .screen-exit { animation: screenExit 0.5s ease-in forwards; }
   @keyframes screenExit { to { opacity: 0; visibility: hidden; } }
 
-  /* ===== AUTH ===== */
   .auth-title { font-family: 'Cinzel', serif; font-size: 1.35rem; font-weight: 600; margin-bottom: 0.3rem; }
   .auth-sub { font-size: 0.75rem; color: #5b6478; letter-spacing: 0.1em; margin-bottom: 1.8rem; text-transform: uppercase; }
 
@@ -110,14 +109,9 @@
 
   .error-text { color: #ff4757; font-size: 0.78rem; margin: -0.4rem 0 0.9rem; min-height: 1em; text-align: left; }
 
-  .auth-switch {
-    margin-top: 1.4rem;
-    font-size: 0.78rem;
-    color: #5b6478;
-  }
+  .auth-switch { margin-top: 1.4rem; font-size: 0.78rem; color: #5b6478; }
   .auth-switch a { color: #00c8ff; cursor: pointer; text-decoration: underline; }
 
-  /* ===== ARISE INTRO ===== */
   #ariseScreen { text-align: center; }
   .intro-inner { position: relative; display: none; }
   .intro-inner.active { display: block; }
@@ -200,7 +194,6 @@
   .intro-inner.exit { animation: introExit 0.8s ease-in forwards; }
   @keyframes introExit { to { opacity: 0; transform: scale(1.05); } }
 
-  /* ===== RANK REVEAL ===== */
   .rank-label { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: #5b6478; margin-bottom: 1.4rem; opacity: 0; animation: fadeUp 0.8s ease-out 0.3s forwards; }
   .rank-hunter-name { font-family: 'Cinzel', serif; font-size: 1.3rem; margin-bottom: 2.2rem; opacity: 0; animation: fadeUp 0.8s ease-out 0.6s forwards; }
 
@@ -220,7 +213,6 @@
   .rank-tagline { font-size: 0.82rem; color: #7c8698; line-height: 1.6; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.8s ease-out 1.8s forwards; }
   #rankScreen .system-btn { opacity: 0; animation: fadeUp 0.8s ease-out 2.2s forwards; }
 
-  /* ===== DASHBOARD ===== */
   #dashboard { display: none; min-height: 100vh; padding: 1.6rem 1rem 4rem; max-width: 680px; margin: 0 auto; }
   #dashboard.active { display: block; }
 
@@ -307,9 +299,7 @@
   }
   .add-quest-btn:hover { background: rgba(0, 200, 255, 0.2); }
 
-  .achievement-item {
-    display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0; border-bottom: 1px solid rgba(0, 200, 255, 0.08);
-  }
+  .achievement-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem 0; border-bottom: 1px solid rgba(0, 200, 255, 0.08); }
   .achievement-item:last-child { border-bottom: none; }
   .achievement-icon { font-size: 1.1rem; }
   .achievement-label { font-size: 0.82rem; color: #d0dae8; }
@@ -339,7 +329,6 @@
 </head>
 <body>
 
-  <!-- AUTH: SIGNUP -->
   <div class="screen" id="signupScreen">
     <div class="panel-box fade-in">
       <div class="auth-title">Create Hunter Account</div>
@@ -358,7 +347,6 @@
     </div>
   </div>
 
-  <!-- AUTH: LOGIN -->
   <div class="screen hidden" id="loginScreen">
     <div class="panel-box fade-in">
       <div class="auth-title">Hunter Login</div>
@@ -377,7 +365,6 @@
     </div>
   </div>
 
-  <!-- GATE WARNING -->
   <div class="screen hidden" id="gateScreen">
     <div class="panel-box fade-in">
       <div class="label">⚠ System Notice</div>
@@ -390,7 +377,6 @@
     </div>
   </div>
 
-  <!-- ARISE INTRO -->
   <div class="screen hidden" id="ariseScreen">
     <div class="intro-inner" id="introInner">
       <div class="pulse-ring"></div>
@@ -408,7 +394,6 @@
     </div>
   </div>
 
-  <!-- RANK REVEAL (first-time signup only) -->
   <div class="screen hidden" id="rankScreen">
     <div style="text-align:center;">
       <div class="rank-label">Evaluation Complete</div>
@@ -419,7 +404,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboard">
     <div class="dash-header">
       <div>
@@ -497,10 +481,9 @@
     <div class="lt-sub" id="levelUpSub">Level 2 • +3 Stat Points</div>
   </div>
 
-  <script>
+<script>
     let currentHunter = null;
 
-    // ===== SOUND =====
     function playAriseSound() {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const now = ctx.currentTime;
@@ -575,7 +558,6 @@
       });
     }
 
-    // ===== SCREEN ELEMENTS =====
     const screens = {
       signup: document.getElementById('signupScreen'),
       login: document.getElementById('loginScreen'),
@@ -594,7 +576,6 @@
     document.getElementById('showLogin').addEventListener('click', () => goTo('login'));
     document.getElementById('showSignup').addEventListener('click', () => goTo('signup'));
 
-    // ===== AUTH: SIGNUP =====
     document.getElementById('signupBtn').addEventListener('click', async () => {
       const username = document.getElementById('signupUsername').value.trim();
       const password = document.getElementById('signupPassword').value;
@@ -630,7 +611,6 @@
       }
     });
 
-    // ===== AUTH: LOGIN =====
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('loginUsername').value.trim();
       const password = document.getElementById('loginPassword').value;
@@ -654,6 +634,7 @@
 
         currentHunter = data.hunter;
         localStorage.setItem('hunterUsername', currentHunter.username);
+        logSession('login');
         loadDashboard(currentHunter);
       } catch (err) {
         errorEl.textContent = err.message;
@@ -663,7 +644,6 @@
       }
     });
 
-    // ===== GATE -> ARISE -> RANK REVEAL (signup flow only) =====
     document.getElementById('enterBtn').addEventListener('click', () => {
       playAriseSound();
       screens.gate.classList.add('screen-exit');
@@ -682,7 +662,6 @@
       loadDashboard(currentHunter);
     });
 
-    // ===== LOGOUT =====
     document.getElementById('logoutBtn').addEventListener('click', () => {
       localStorage.removeItem('hunterUsername');
       currentHunter = null;
@@ -692,17 +671,16 @@
       goTo('signup');
     });
 
-    // ===== TABS =====
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+        logVisit('dashboard', btn.dataset.tab);
       });
     });
 
-    // ===== DASHBOARD =====
     function loadDashboard(hunter) {
       Object.values(screens).forEach(s => s.classList.add('hidden'));
       dashboard.classList.add('active');
@@ -727,7 +705,6 @@
       document.getElementById('xpText').textContent = `${hunter.xp} / ${hunter.xpToNextLevel}`;
       document.getElementById('xpFill').style.width = `${Math.min(100, (hunter.xp / hunter.xpToNextLevel) * 100)}%`;
 
-      // Stats
       const statsList = document.getElementById('statsList');
       const statPointsBanner = document.getElementById('statPointsBanner');
       document.getElementById('statPointsCount').textContent = hunter.statPoints;
@@ -747,12 +724,9 @@
       });
       document.querySelectorAll('.stat-plus').forEach(btn => btn.addEventListener('click', () => allocateStat(btn.dataset.stat)));
 
-      // Daily quests
       renderQuestList('dailyQuestsList', hunter.dailyQuests, 'daily');
-      // Weekly quests
       renderQuestList('weeklyQuestsList', hunter.weeklyQuests, 'weekly');
 
-      // Achievements
       const achievementsList = document.getElementById('achievementsList');
       achievementsList.innerHTML = '';
       if (!hunter.achievements || hunter.achievements.length === 0) {
@@ -766,7 +740,6 @@
         });
       }
 
-      // History
       const historyList = document.getElementById('historyList');
       historyList.innerHTML = '';
       if (!hunter.questHistory || hunter.questHistory.length === 0) {
@@ -807,7 +780,7 @@
         const res = await fetch('/api/stats/allocate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: currentHunter.username, stat, points: 1 })
+          body: JSON.stringify({ username: currentHunter.username, stat, points: 1 })
         });
         if (!res.ok) return;
         currentHunter.stats[stat] += 1;
@@ -897,18 +870,55 @@
       } catch (err) { console.error(err); }
     }
 
-    // ===== AUTO-RESUME SESSION =====
-    window.addEventListener('DOMContentLoaded', async () => {
-      const savedUsername = localStorage.getItem('hunterUsername');
-      if (!savedUsername) return;
+    function logVisit(page, tab) {
+      fetch('/api/track/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentHunter ? currentHunter.username : null, page, tab })
+      }).catch(() => {});
+    }
 
-      // We don't store passwords locally, so we just try to fetch hunter data
-      // via a lightweight re-fetch. Since login requires a password, we prompt
-      // re-login but pre-fill the username for convenience.
-      document.getElementById('loginUsername').value = savedUsername;
-      goTo('login');
+    function logSession(event) {
+      if (!currentHunter) return;
+      fetch('/api/track/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentHunter.username, event })
+      }).catch(() => {});
+    }
+
+    async function checkBroadcast() {
+      try {
+        const res = await fetch('/api/admin/broadcast');
+        const data = await res.json();
+        if (data.broadcast && data.broadcast.message) {
+          const seen = localStorage.getItem('lastBroadcastSeen');
+          if (seen !== data.broadcast.createdAt) {
+            showBroadcastBanner(data.broadcast.message);
+            localStorage.setItem('lastBroadcastSeen', data.broadcast.createdAt);
+          }
+        }
+      } catch (err) { console.error(err); }
+    }
+
+    function showBroadcastBanner(message) {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed; top:0; left:0; right:0; background:rgba(0,15,25,0.97); border-bottom:1px solid #00c8ff; color:#00eaff; font-size:0.8rem; padding:0.8rem 1rem; text-align:center; z-index:200; box-shadow:0 0 20px rgba(0,200,255,0.3);';
+      banner.innerHTML = `<strong>📡 SYSTEM BROADCAST:</strong> ${message} <span style="margin-left:1rem; cursor:pointer; opacity:0.6;" onclick="this.parentElement.remove()">✕</span>`;
+      document.body.prepend(banner);
+    }
+
+    logVisit('landing');
+    checkBroadcast();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUsername = localStorage.getItem('hunterUsername');
+      if (savedUsername) {
+        document.getElementById('loginUsername').value = savedUsername;
+        goTo('login');
+      }
     });
-  </script>
+</script>
 
 </body>
 </html>
