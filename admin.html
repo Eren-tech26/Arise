@@ -182,7 +182,7 @@
     errorEl.textContent = '';
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const res = await fetch('/api/admin/index?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password })
@@ -235,7 +235,7 @@
 
   async function loadOverview() {
     try {
-      const res = await fetch('/api/admin/stats-overview', { headers: authHeaders() });
+      const res = await fetch('/api/admin/index?action=stats-overview', { headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) return;
 
@@ -279,7 +279,7 @@
 
   async function loadHunters() {
     try {
-      const res = await fetch('/api/admin/hunters', { headers: authHeaders() });
+      const res = await fetch('/api/admin/index?action=hunters', { headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) return;
 
@@ -321,7 +321,7 @@
 
   async function manageHunter(action, username, updates) {
     try {
-      const res = await fetch('/api/admin/manage-hunter', {
+      const res = await fetch('/api/admin/index?action=manage-hunter', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ action, username, updates })
@@ -339,7 +339,7 @@
 
   async function viewHunterDetail(username) {
     try {
-      const res = await fetch(`/api/admin/hunter-detail?username=${encodeURIComponent(username)}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/index?action=hunter-detail&username=${encodeURIComponent(username)}`, { headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) return;
 
@@ -400,7 +400,7 @@
     if (!message) return;
 
     try {
-      const res = await fetch('/api/admin/broadcast', {
+      const res = await fetch('/api/admin/index?action=broadcast', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ message })
