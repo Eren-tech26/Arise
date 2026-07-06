@@ -1,5 +1,15 @@
 const clientPromise = require('../../lib/mongodb');
 
+function getPeriodKey(freq) {
+  const now = new Date();
+  if (freq === 'weekly') {
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil((((now - jan1) / 86400000) + jan1.getDay() + 1) / 7);
+    return `${now.getFullYear()}-W${week}`;
+  }
+  return now.toISOString().split('T')[0];
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -45,13 +55,3 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Failed to add quest' });
   }
 };
-
-function getPeriodKey(freq) {
-  const now = new Date();
-  if (freq === 'weekly') {
-    const jan1 = new Date(now.getFullYear(), 0, 1);
-    const week = Math.ceil((((now - jan1) / 86400000) + jan1.getDay() + 1) / 7);
-    return `${now.getFullYear()}-W${week}`;
-  }
-  return now.toISOString().split('T')[0];
-}
