@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Control</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; color: #e6f7ff; font-family: 'Inter', sans-serif; min-height: 100vh; }
+  .hidden { display: none !important; }
+
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .login-box {
+    border: 1px solid rgba(0,200,255,0.5); background: rgba(0,15,25,0.5);
+    box-shadow: 0 0 20px rgba(0,200,255,0.2); padding: 2.5rem; max-width: 380px; width: 100%; text-align: center;
+  }
+  .login-title { font-family: 'Cinzel', serif; font-size: 1.3rem; margin-bottom: 1.6rem; color: #00c8ff; }
+  .login-input {
+    width: 100%; background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.35);
+    color: #00eaff; font-size: 1rem; padding: 0.8rem; text-align: center; outline: none; margin-bottom: 1rem;
+  }
+  .login-btn {
+    width: 100%; background: transparent; border: 1px solid #00c8ff; color: #00c8ff;
+    padding: 0.8rem; font-family: 'Cinzel', serif; letter-spacing: 0.15em; cursor: pointer; font-size: 0.9rem;
+  }
+  .login-btn:hover { background: rgba(0,200,255,0.1); }
+  .login-error { color: #ff4757; font-size: 0.8rem; margin-top: 0.8rem; }
+
+  #adminDashboard { padding: 1.5rem 1rem 3rem; max-width: 1100px; margin: 0 auto; }
+  .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(0,200,255,0.2); padding-bottom: 1rem; }
+  .admin-title { font-family: 'Cinzel', serif; color: #00c8ff; font-size: 1.3rem; }
+  .logout-link { font-size: 0.75rem; color: #4a5568; text-decoration: underline; cursor: pointer; }
+
+  .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+  .stat-card { border: 1px solid rgba(0,200,255,0.25); background: rgba(0,15,25,0.3); padding: 1rem; text-align: center; }
+  .stat-card-num { font-family: 'Cinzel', serif; font-size: 1.6rem; color: #00eaff; }
+  .stat-card-label { font-size: 0.68rem; color: #7c8698; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.3rem; }
+
+  .admin-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; overflow-x: auto; }
+  .admin-tab-btn { background: transparent; border: 1px solid rgba(0,200,255,0.25); color: #7c8698; padding: 0.5rem 1rem; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
+  .admin-tab-btn.active { color: #00c8ff; border-color: #00c8ff; box-shadow: 0 0 10px rgba(0,200,255,0.2); }
+  .admin-tab-content { display: none; }
+  .admin-tab-content.active { display: block; }
+
+  .panel { border: 1px solid rgba(0,200,255,0.2); background: rgba(0,15,25,0.3); padding: 1.2rem; margin-bottom: 1.2rem; }
+  .panel-title { font-family: 'Cinzel', serif; color: #00c8ff; font-size: 0.9rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th { text-align: left; color: #5b6478; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem; border-bottom: 1px solid rgba(0,200,255,0.2); }
+  td { padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(0,200,255,0.08); color: #d0dae8; }
+  tr.inactive-row td { opacity: 0.5; }
+  tr.suspended-row td { color: #ff4757; }
+  .table-wrap { overflow-x: auto; }
+
+  .action-btn {
+    background: rgba(0,200,255,0.1); border: 1px solid #00c8ff; color: #00c8ff;
+    padding: 0.3rem 0.6rem; font-size: 0.68rem; cursor: pointer; margin-right: 0.3rem; margin-bottom: 0.2rem;
+  }
+  .action-btn.danger { border-color: #ff4757; color: #ff4757; background: rgba(255,71,87,0.1); }
+  .action-btn:hover { opacity: 0.8; }
+
+  .broadcast-input {
+    width: 100%; background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.3);
+    color: #e6f7ff; padding: 0.7rem; font-size: 0.85rem; outline: none; margin-bottom: 0.8rem; min-height: 80px; resize: vertical;
+  }
+
+  .detail-view { display: none; }
+  .detail-view.active { display: block; }
+  .back-link { color: #00c8ff; cursor: pointer; font-size: 0.8rem; margin-bottom: 1rem; display: inline-block; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
+  .detail-field { border: 1px solid rgba(0,200,255,0.15); padding: 0.7rem; }
+  .detail-field-label { font-size: 0.65rem; color: #5b6478; text-transform: uppercase; }
+  .detail-field-value { font-family: 'Cinzel', serif; color: #00eaff; font-size: 1.1rem; margin-top: 0.2rem; }
+  .detail-field-input { width: 100%; background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.3); color: #00eaff; padding: 0.4rem; margin-top: 0.3rem; font-size: 0.9rem; }
+
+  .log-entry { padding: 0.5rem 0; border-bottom: 1px solid rgba(0,200,255,0.08); font-size: 0.75rem; color: #7c8698; }
+
+  .toast-msg {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: rgba(0,10,20,0.95); border: 1px solid #00c8ff; padding: 0.8rem 1.5rem; z-index: 100;
+    transition: transform 0.4s ease; font-size: 0.85rem;
+  }
+  .toast-msg.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="login-title">⚙ System Control</div>
+      <input type="password" class="login-input" id="adminPassword" placeholder="Admin password" />
+      <button class="login-btn" id="adminLoginBtn">Access</button>
+      <div class="login-error" id="adminLoginError"></div>
+    </div>
+  </div>
+
+  <div id="adminDashboard" class="hidden">
+    <div class="admin-header">
+      <div class="admin-title">System Control Panel</div>
+      <span class="logout-link" id="adminLogoutBtn">Log out</span>
+    </div>
+
+    <div class="stat-cards" id="statCards"></div>
+
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" data-tab="hunters">Hunters</button>
+      <button class="admin-tab-btn" data-tab="leaderboard">Leaderboard</button>
+      <button class="admin-tab-btn" data-tab="broadcast">Broadcast</button>
+      <button class="admin-tab-btn" data-tab="visits">Visit Graph</button>
+    </div>
+
+    <div class="admin-tab-content active" id="admin-tab-hunters">
+      <div class="panel">
+        <div class="panel-title">All Hunters</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Rank</th><th>Lvl</th><th>Streak</th><th>Last Active</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="huntersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel detail-view" id="hunterDetailView">
+        <span class="back-link" id="backToList">← Back to list</span>
+        <div class="panel-title" id="detailHunterName">Hunter</div>
+        <div class="detail-grid" id="detailGrid"></div>
+        <button class="action-btn" id="saveEditsBtn">Save Changes</button>
+
+        <div style="margin-top:1.5rem;">
+          <div class="panel-title">Session Log (Logins)</div>
+          <div id="sessionLog"></div>
+        </div>
+        <div style="margin-top:1.5rem;">
+          <div class="panel-title">Page/Tab Visits</div>
+          <div id="visitLog"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-tab-content" id="admin-tab-leaderboard">
+      <div class="panel">
+        <div class="panel-title">Top Hunters by Total XP</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Rank</th><th>Lvl</th><th>Total XP</th><th>Streak</th></tr></thead>
+            <tbody id="leaderboardTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-tab-content" id="admin-tab-broadcast">
+      <div class="panel">
+        <div class="panel-title">Send System Broadcast</div>
+        <textarea class="broadcast-input" id="broadcastInput" placeholder="e.g. Server maintenance tonight at 10 PM. Save your progress!"></textarea>
+        <button class="action-btn" id="sendBroadcastBtn">Send to All Hunters</button>
+      </div>
+    </div>
+
+    <div class="admin-tab-content" id="admin-tab-visits">
+      <div class="panel">
+        <div class="panel-title">Visits — Last 14 Days</div>
+        <div id="visitGraph" style="display:flex; align-items:flex-end; gap:4px; height:120px; padding-top:1rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-msg" id="adminToast"></div>
+
+<script>
+  let adminToken = null;
+  let allHunters = [];
+
+  const loginScreen = document.getElementById('loginScreen');
+  const adminDashboard = document.getElementById('adminDashboard');
+
+  document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+    const password = document.getElementById('adminPassword').value;
+    const errorEl = document.getElementById('adminLoginError');
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Login failed');
+
+      adminToken = data.token;
+      sessionStorage.setItem('adminToken', adminToken);
+      loginScreen.classList.add('hidden');
+      adminDashboard.classList.remove('hidden');
+      loadAllData();
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
+
+  document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+    sessionStorage.removeItem('adminToken');
+    adminToken = null;
+    adminDashboard.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('adminToken');
+    if (saved) {
+      adminToken = saved;
+      loginScreen.classList.add('hidden');
+      adminDashboard.classList.remove('hidden');
+      loadAllData();
+    }
+  });
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` };
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('adminToast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  async function loadAllData() {
+    await loadOverview();
+    await loadHunters();
+  }
+
+  async function loadOverview() {
+    try {
+      const res = await fetch('/api/admin/stats-overview', { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) return;
+
+      document.getElementById('statCards').innerHTML = `
+        <div class="stat-card"><div class="stat-card-num">${data.totalHunters}</div><div class="stat-card-label">Total Hunters</div></div>
+        <div class="stat-card"><div class="stat-card-num">${data.totalVisits}</div><div class="stat-card-label">Total Visits</div></div>
+        <div class="stat-card"><div class="stat-card-num">${data.dailyVisitCounts[data.dailyVisitCounts.length-1]?.count || 0}</div><div class="stat-card-label">Visits Today</div></div>
+      `;
+
+      renderLeaderboard(data.leaderboard);
+      renderVisitGraph(data.dailyVisitCounts);
+    } catch (err) { console.error(err); }
+  }
+
+  function renderLeaderboard(leaderboard) {
+    const tbody = document.getElementById('leaderboardTableBody');
+    tbody.innerHTML = leaderboard.map((h, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${h.displayName || h.username}</td>
+        <td>${h.rank}</td>
+        <td>${h.level}</td>
+        <td>${h.totalXpEarned}</td>
+        <td>🔥 ${h.streak}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderVisitGraph(dailyCounts) {
+    const max = Math.max(...dailyCounts.map(d => d.count), 1);
+    const graph = document.getElementById('visitGraph');
+    graph.innerHTML = dailyCounts.map(d => {
+      const height = Math.max(4, (d.count / max) * 100);
+      const label = d.date.slice(5);
+      return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+        <div style="width:100%; background:linear-gradient(180deg,#00eaff,#0088ff); box-shadow:0 0 8px rgba(0,200,255,0.5); height:${height}px;"></div>
+        <div style="font-size:0.55rem; color:#4a5568; margin-top:4px; writing-mode:vertical-rl;">${label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadHunters() {
+    try {
+      const res = await fetch('/api/admin/hunters', { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) return;
+
+      allHunters = data.hunters;
+      renderHuntersTable();
+    } catch (err) { console.error(err); }
+  }
+
+  function renderHuntersTable() {
+    const tbody = document.getElementById('huntersTableBody');
+    tbody.innerHTML = allHunters.map(h => `
+      <tr class="${h.isInactive ? 'inactive-row' : ''} ${h.suspended ? 'suspended-row' : ''}">
+        <td>${h.displayName || h.username}</td>
+        <td>${h.rank}</td>
+        <td>${h.level}</td>
+        <td>🔥${h.streak}</td>
+        <td>${new Date(h.lastActive).toLocaleDateString()}</td>
+        <td>${h.suspended ? 'Suspended' : (h.isInactive ? 'Inactive' : 'Active')}</td>
+        <td>
+          <button class="action-btn" data-action="view" data-username="${h.username}">View</button>
+          <button class="action-btn" data-action="${h.suspended ? 'unsuspend' : 'suspend'}" data-username="${h.username}">${h.suspended ? 'Unsuspend' : 'Suspend'}</button>
+          <button class="action-btn danger" data-action="delete" data-username="${h.username}">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-action="view"]').forEach(btn => btn.addEventListener('click', () => viewHunterDetail(btn.dataset.username)));
+    tbody.querySelectorAll('[data-action="suspend"], [data-action="unsuspend"]').forEach(btn => {
+      btn.addEventListener('click', () => manageHunter(btn.dataset.action, btn.dataset.username));
+    });
+    tbody.querySelectorAll('[data-action="delete"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm(`Permanently delete hunter "${btn.dataset.username}"? This cannot be undone.`)) {
+          manageHunter('delete', btn.dataset.username);
+        }
+      });
+    });
+  }
+
+  async function manageHunter(action, username, updates) {
+    try {
+      const res = await fetch('/api/admin/manage-hunter', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ action, username, updates })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      showToast(`Hunter ${action}d successfully`);
+      loadHunters();
+      document.getElementById('hunterDetailView').classList.remove('active');
+    } catch (err) {
+      showToast(`Error: ${err.message}`);
+    }
+  }
+
+  async function viewHunterDetail(username) {
+    try {
+      const res = await fetch(`/api/admin/hunter-detail?username=${encodeURIComponent(username)}`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) return;
+
+      const h = data.hunter;
+      document.getElementById('detailHunterName').textContent = h.displayName || h.username;
+
+      document.getElementById('detailGrid').innerHTML = `
+        <div class="detail-field"><div class="detail-field-label">Level</div><input class="detail-field-input" id="edit-level" value="${h.level}" /></div>
+        <div class="detail-field"><div class="detail-field-label">Rank</div><input class="detail-field-input" id="edit-rank" value="${h.rank}" /></div>
+        <div class="detail-field"><div class="detail-field-label">XP</div><input class="detail-field-input" id="edit-xp" value="${h.xp}" /></div>
+        <div class="detail-field"><div class="detail-field-label">XP to Next</div><input class="detail-field-input" id="edit-xpToNextLevel" value="${h.xpToNextLevel}" /></div>
+        <div class="detail-field"><div class="detail-field-label">Stat Points</div><input class="detail-field-input" id="edit-statPoints" value="${h.statPoints}" /></div>
+        <div class="detail-field"><div class="detail-field-label">Streak</div><input class="detail-field-input" id="edit-streak" value="${h.streak}" /></div>
+        <div class="detail-field"><div class="detail-field-label">STR</div><input class="detail-field-input" id="edit-stat-STR" value="${h.stats.STR}" /></div>
+        <div class="detail-field"><div class="detail-field-label">AGI</div><input class="detail-field-input" id="edit-stat-AGI" value="${h.stats.AGI}" /></div>
+        <div class="detail-field"><div class="detail-field-label">VIT</div><input class="detail-field-input" id="edit-stat-VIT" value="${h.stats.VIT}" /></div>
+        <div class="detail-field"><div class="detail-field-label">INT</div><input class="detail-field-input" id="edit-stat-INT" value="${h.stats.INT}" /></div>
+        <div class="detail-field"><div class="detail-field-label">SENSE</div><input class="detail-field-input" id="edit-stat-SENSE" value="${h.stats.SENSE}" /></div>
+      `;
+
+      document.getElementById('saveEditsBtn').onclick = () => {
+        const updates = {
+          level: parseInt(document.getElementById('edit-level').value),
+          rank: document.getElementById('edit-rank').value.toUpperCase(),
+          xp: parseInt(document.getElementById('edit-xp').value),
+          xpToNextLevel: parseInt(document.getElementById('edit-xpToNextLevel').value),
+          statPoints: parseInt(document.getElementById('edit-statPoints').value),
+          streak: parseInt(document.getElementById('edit-streak').value),
+          stats: {
+            STR: parseInt(document.getElementById('edit-stat-STR').value),
+            AGI: parseInt(document.getElementById('edit-stat-AGI').value),
+            VIT: parseInt(document.getElementById('edit-stat-VIT').value),
+            INT: parseInt(document.getElementById('edit-stat-INT').value),
+            SENSE: parseInt(document.getElementById('edit-stat-SENSE').value)
+          }
+        };
+        manageHunter('edit', username, updates);
+      };
+
+      document.getElementById('sessionLog').innerHTML = data.sessionLog.length
+        ? data.sessionLog.map(s => `<div class="log-entry">${s.event} — ${new Date(s.timestamp).toLocaleString()}</div>`).join('')
+        : '<div class="log-entry">No session logs yet.</div>';
+
+      document.getElementById('visitLog').innerHTML = data.visitLog.length
+        ? data.visitLog.map(v => `<div class="log-entry">${v.page}${v.tab ? ' → ' + v.tab : ''} — ${new Date(v.timestamp).toLocaleString()}</div>`).join('')
+        : '<div class="log-entry">No visit logs yet.</div>';
+
+      document.getElementById('hunterDetailView').classList.add('active');
+    } catch (err) { console.error(err); }
+  }
+
+  document.getElementById('backToList').addEventListener('click', () => {
+    document.getElementById('hunterDetailView').classList.remove('active');
+  });
+
+  document.getElementById('sendBroadcastBtn').addEventListener('click', async () => {
+    const message = document.getElementById('broadcastInput').value.trim();
+    if (!message) return;
+
+    try {
+      const res = await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ message })
+      });
+      if (!res.ok) throw new Error('Failed to send');
+      showToast('Broadcast sent to all hunters');
+      document.getElementById('broadcastInput').value = '';
+    } catch (err) {
+      showToast('Error sending broadcast');
+    }
+  });
+
+  document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`admin-tab-${btn.dataset.tab}`).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
