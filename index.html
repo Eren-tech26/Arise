@@ -792,6 +792,8 @@ const pendingStats = new Set();
     }
 
     async function completeQuest(questId, frequency) {
+      if (pendingQuests.has(questId)) return;
+      pendingQuests.add(questId);
       try {
         const res = await fetch('/api/quests/complete', {
           method: 'POST',
