@@ -100,7 +100,6 @@ module.exports = async (req, res) => {
     const leveled = calculateLevelUp(hunter.level, newXp, hunter.xpToNextLevel, hunter.statPoints);
     const newRank = calculateRank(newTotalXp);
 
-    // Streak logic: only dailies affect streak
     let streak = hunter.streak;
     let lastDailyCompleteDate = hunter.lastDailyCompleteDate;
 
@@ -136,6 +135,11 @@ module.exports = async (req, res) => {
 
     const newAchievements = checkNewAchievements(updatedHunterForAchievements);
 
+    const pushObj = { questHistory: questHistoryEntry };
+    if (newAchievements.length > 0) {
+      pushObj.achievements = { $each: newAchievements };
+    }
+
     await hunters.updateOne(
       { username: cleanUsername, [`${field}.id`]: questId },
       {
@@ -151,10 +155,7 @@ module.exports = async (req, res) => {
           lastDailyCompleteDate,
           lastActive: new Date()
         },
-        $push: {
-          questHistory: questHistoryEntry,
-          ...(newAchievements.length > 0 ? { achievements: { $each: newAchievements } } : {})
-        }
+        $push: pushObj
       }
     );
 
