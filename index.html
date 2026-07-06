@@ -483,6 +483,8 @@
 
 <script>
     let currentHunter = null;
+const pendingQuests = new Set();
+const pendingStats = new Set();
 
     function playAriseSound() {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
