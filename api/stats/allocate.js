@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   try {
     const { username, stat, points } = req.body;
 
-    if (!name || !VALID_STATS.includes(stat) || !points || points < 1) {
+    if (!username || !VALID_STATS.includes(stat) || !points || points < 1) {
       return res.status(400).json({ error: 'Invalid request' });
     }
 
@@ -18,7 +18,8 @@ module.exports = async (req, res) => {
     const db = client.db(process.env.DB_NAME || 'solo_leveling_system');
     const hunters = db.collection('hunters');
 
-    const hunter = await hunters.findOne({ name: name.trim() });
+    const cleanUsername = username.trim().toLowerCase();
+    const hunter = await hunters.findOne({ username: cleanUsername });
     if (!hunter) {
       return res.status(404).json({ error: 'Hunter not found' });
     }
@@ -30,7 +31,7 @@ module.exports = async (req, res) => {
     const statField = `stats.${stat}`;
 
     await hunters.updateOne(
-      { name: name.trim() },
+      { username: cleanUsername },
       {
         $inc: { [statField]: points, statPoints: -points },
         $set: { lastActive: new Date() }
