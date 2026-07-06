@@ -35,12 +35,10 @@ module.exports = async (req, res) => {
     const today = todayKey();
     const week = currentWeekKey();
 
-    // Daily reset
     const missedDaily = (hunter.dailyQuests || []).filter(q => q.periodKey !== today && !q.completed);
     const remainingDaily = (hunter.dailyQuests || []).filter(q => q.periodKey === today);
     const dailyPenalty = missedDaily.length * 5;
 
-    // Weekly reset
     const missedWeekly = (hunter.weeklyQuests || []).filter(q => q.periodKey !== week && !q.completed);
     const remainingWeekly = (hunter.weeklyQuests || []).filter(q => q.periodKey === week);
     const weeklyPenalty = missedWeekly.length * 15;
@@ -48,7 +46,6 @@ module.exports = async (req, res) => {
     const totalPenalty = dailyPenalty + weeklyPenalty;
     const newXp = Math.max(0, hunter.xp - totalPenalty);
 
-    // Break streak if yesterday's dailies weren't all completed
     let streak = hunter.streak;
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
