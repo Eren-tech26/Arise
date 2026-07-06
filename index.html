@@ -456,7 +456,7 @@
     <div class="tab-content" id="tab-stats">
       <div class="panel">
         <div class="panel-title">Stats</div>
-        <div class="stat-points-banner hidden" id="statPointsBanner">You have <span id="statPointsCount">0</span> stat points to allocate</div>
+       <div class="stat-points-banner hidden" id="statPointsBanner">You have <span id="statPointsCount">0</span> points to spend on your skills</div>
         <div id="statsList"></div>
       </div>
     </div>
@@ -713,11 +713,12 @@ const pendingStats = new Set();
       statPointsBanner.classList.toggle('hidden', hunter.statPoints <= 0);
 
       statsList.innerHTML = '';
+      const STAT_LABELS = { STR: 'Fitness', AGI: 'Focus', VIT: 'Health', INT: 'Learning', SENSE: 'Mindfulness' };
       Object.entries(hunter.stats).forEach(([stat, value]) => {
         const row = document.createElement('div');
         row.className = 'stat-row';
         row.innerHTML = `
-          <span class="stat-name">${stat}</span>
+          <span class="stat-name">${STAT_LABELS[stat] || stat}</span>
           <span style="display:flex; align-items:center;">
             <span class="stat-value">${value}</span>
             <button class="stat-plus" data-stat="${stat}" ${hunter.statPoints <= 0 ? 'disabled' : ''}>+</button>
@@ -778,6 +779,8 @@ const pendingStats = new Set();
     }
 
     async function allocateStat(stat) {
+      if (pendingStats.has(stat)) return;
+      pendingStats.add(stat);
       try {
         const res = await fetch('/api/stats/allocate', {
           method: 'POST',
@@ -789,6 +792,7 @@ const pendingStats = new Set();
         currentHunter.statPoints -= 1;
         renderDashboard(currentHunter);
       } catch (err) { console.error(err); }
+      finally { pendingStats.delete(stat); }
     }
 
     async function completeQuest(questId, frequency) {
@@ -831,6 +835,7 @@ const pendingStats = new Set();
           showToast('LEVEL UP', `Level ${data.newLevel} • +${data.statPointsGained} Stat Points`);
         }
       } catch (err) { console.error(err); }
+      finally { pendingQuests.delete(questId); }
     }
 
     function showToast(title, sub) {
