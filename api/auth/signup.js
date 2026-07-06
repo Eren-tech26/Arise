@@ -29,8 +29,6 @@ module.exports = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const RANK_THRESHOLDS = { E: 0, D: 500, C: 1500, B: 3500, A: 7000, S: 15000 };
-
     const newHunter = {
       username: cleanUsername,
       displayName: username.trim(),
@@ -48,6 +46,7 @@ module.exports = async (req, res) => {
       lastDailyCompleteDate: null,
       achievements: [],
       questHistory: [],
+      suspended: false,
       createdAt: new Date(),
       lastActive: new Date()
     };
