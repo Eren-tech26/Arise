@@ -889,7 +889,7 @@
 
     async function checkBroadcast() {
       try {
-        const res = await fetch('/api/admin/broadcast');
+        const res = await fetch('/api/admin?action=broadcast');
         const data = await res.json();
         if (data.broadcast && data.broadcast.message) {
           const seen = localStorage.getItem('lastBroadcastSeen');
