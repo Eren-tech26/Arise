@@ -592,7 +592,7 @@ const pendingStats = new Set();
       btn.textContent = 'Registering...';
 
       try {
-        const res = await fetch('/api/auth/signup', {
+        const res = await fetch('/api/app?action=signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -626,7 +626,7 @@ const pendingStats = new Set();
       btn.textContent = 'Logging in...';
 
       try {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch('/api/app?action=login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -782,7 +782,7 @@ const pendingStats = new Set();
       if (pendingStats.has(stat)) return;
       pendingStats.add(stat);
       try {
-        const res = await fetch('/api/stats/allocate', {
+        const res = await fetch('/api/app?action=stat-allocate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: currentHunter.username, stat, points: 1 })
@@ -799,7 +799,7 @@ const pendingStats = new Set();
       if (pendingQuests.has(questId)) return;
       pendingQuests.add(questId);
       try {
-        const res = await fetch('/api/quests/complete', {
+        const res = await fetch('/api/app?action=quest-complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: currentHunter.username, questId, frequency })
@@ -857,7 +857,7 @@ const pendingStats = new Set();
       if (!text) return;
 
       try {
-        const res = await fetch('/api/quests/add', {
+        const res = await fetch('/api/app?action=quest-add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -880,7 +880,7 @@ const pendingStats = new Set();
     }
 
     function logVisit(page, tab) {
-      fetch('/api/track/visit', {
+      fetch('/api/app?action=track-visit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: currentHunter ? currentHunter.username : null, page, tab })
@@ -889,7 +889,7 @@ const pendingStats = new Set();
 
     function logSession(event) {
       if (!currentHunter) return;
-      fetch('/api/track/session', {
+      fetch('/api/app?action=track-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: currentHunter.username, event })
