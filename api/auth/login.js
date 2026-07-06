@@ -24,6 +24,10 @@ module.exports = async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    if (hunter.suspended) {
+      return res.status(403).json({ error: 'This account has been suspended.' });
+    }
+
     const valid = await bcrypt.compare(password, hunter.passwordHash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid username or password' });
